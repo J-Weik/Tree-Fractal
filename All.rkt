@@ -7,6 +7,41 @@
 
 ; Helper funktionen Definitionen
 
+; List-of-X -> X
+; returns the last element of a list
+(check-expect (last (list 1 2 3 4))4)
+(check-expect (last (list "Das" "ist" "ein" "Test"))"Test")
+(check-error (last empty))
+(define (last lst)
+  (cond
+    [(empty? lst)(error 'last "List empty!")]
+    [(empty? (rest lst))(first lst)]
+    [else (last (rest lst))]))
+
+; List-of-X -> List-of-X
+; returns List without the last element
+(check-expect (start (list 1 2 3 4))(list 1 2 3))
+(check-expect (start (list "Test" "Case"))(list "Test"))
+(check-error (start empty))
+
+(define (start lst)
+  (cond
+    [(empty? lst) (error start "List empty!")]
+    [(empty? (rest lst)) empty]
+    [else (cons (first lst) (start (rest lst)))]))
+
+; Number Number -> posn
+; returns the coordinates in cartesian form for a Radiant phi and a length l 
+(check-within (pos-x (polar->cartesian (/ pi 2) 2)) 0.0 1e-6)
+(check-within (pos-y (polar->cartesian (/ pi 2) 2)) 2.0 1e-6)
+(check-within (pos-x (polar->cartesian )) 0.0 1e-6)
+(check-within (pos-y (polar->cartesian )) 2.0 1e-6)
+
+(define (polar->cartesian phi l)
+  (make-posn (* l (cos phi)) (* l (sin phi))))
+
+
+
 ; Helperfunktionen für big-bang-handler
 
 ; Aufruf big-bang-funktion
