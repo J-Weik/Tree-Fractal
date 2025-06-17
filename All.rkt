@@ -3,6 +3,8 @@
 #reader(lib "htdp-intermediate-lambda-reader.ss" "lang")((modname All) (read-case-sensitive #t) (teachpacks ((lib "image.rkt" "teachpack" "2htdp") (lib "universe.rkt" "teachpack" "2htdp"))) (htdp-settings #(#t constructor repeating-decimal #f #t none #f ((lib "image.rkt" "teachpack" "2htdp") (lib "universe.rkt" "teachpack" "2htdp")) #f)))
 ; Datendefinitionen
 
+(define-struct vector (phi len))
+
 ; Konstantendefinitionen
 
 ; Helper funktionen Definitionen
@@ -32,14 +34,20 @@
 
 ; Number Number -> posn
 ; returns the coordinates in cartesian form for a Radiant phi and a length l 
-(check-within (pos-x (polar->cartesian (/ pi 2) 2)) 0.0 1e-6)
-(check-within (pos-y (polar->cartesian (/ pi 2) 2)) 2.0 1e-6)
-(check-within (pos-x (polar->cartesian )) 0.0 1e-6)
-(check-within (pos-y (polar->cartesian )) 2.0 1e-6)
+(check-within (posn-x (polar->cartesian (/ pi 2) 2)) 0.0 1e-6)
+(check-within (posn-y (polar->cartesian (/ pi 2) 2)) 2.0 1e-6)
+(check-within (posn-x (polar->cartesian 0 0)) 0.0 1e-6)
+(check-within (posn-y (polar->cartesian 0 0)) 0.0 1e-6)
 
 (define (polar->cartesian phi l)
   (make-posn (* l (cos phi)) (* l (sin phi))))
 
+; posn vector color image -> iamge
+; Draws a line with length and direction given in vector in the color of color
+; at the coordintes of posn into scene and returns scene
+
+(define (put-branch pos vec color scene)
+  (
 
 
 ; Helperfunktionen für big-bang-handler
