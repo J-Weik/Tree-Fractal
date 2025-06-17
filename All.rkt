@@ -47,7 +47,11 @@
 ; at the coordintes of posn into scene and returns scene
 
 (define (put-branch pos vec color scene)
-  (
+  (place-image
+   (add-line (posn-x pos)(posn-y pos)
+             (posn-x (polar->cartesian (vec-phi) (vec-len))))
+   (posn-x pos) (posn-y pos)
+   scene)
 
 
 ; Helperfunktionen für big-bang-handler
