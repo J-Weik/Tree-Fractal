@@ -8,7 +8,10 @@
 ; Konstantendefinitionen
 
 (define BLOSSOM-SIZE 10)
-(define BLOSSOM-TYPE "outline")
+(define BLOSSOM-TYPE "filled")
+(define TREE-CANVAS-SIZE-X 500)
+(define TREE-CANVAS-SIZE-Y 500)
+(define TEST-COLLIST '("red" "orange" "yellow" "green" "blue" "purple" "black"))
 
 ; Helper funktionen Definitionen
 
@@ -56,7 +59,8 @@
              (+ (posn-y pos) (posn-y (polar->cartesian (vector-phi vec) (vector-len vec))))
              color))
 
-(put-branch (make-posn 250 250) (make-vector (* pi (/ 3 2)) 200) "red" (empty-scene 500 500))
+
+
  
 ; posn color image -> image
 ; draws a circle in the color of color at position posn in the image and returns the image
@@ -67,12 +71,52 @@
    (posn-x pos)
    (posn-y pos)
    scene))
-(put-blossom (make-posn 250 400) "green" (empty-scene 500 500))
-   
+
+; posn vector Number Number Number List-of-colors -> image
+; draws 2 branches from the given start position with lenght and direction given in the vector,
+; 
+
+(define (tree startpos vec verzweigungInRad growthRatio colorList)
+  (cond
+      [(empty? (rest colorList)) (empty-scene TREE-CANVAS-SIZE-X TREE-CANVAS-SIZE-Y)]
+    [else 
+           (put-branch startpos vec (first colorList)
+           (local [
+                   (define NEW-START-POS (polar->cartesian (vector-phi vec)(vector-len vec)))
+                   (define NEW-VEC-L (make-vector (+ (vector-phi vec) verzweigungInRad )(* growthRatio (vector-len vec))))
+                   (define NEW-VEC-R (make-vector (- (vector-phi vec) verzweigungInRad )(* growthRatio (vector-len vec))))]
+                   (tree
+                         NEW-START-POS
+                         NEW-VEC-L
+                         verzweigungInRad
+                         growthRatio
+                         (rest colorList))
+                         (tree
+                          NEW-START-POS
+                          NEW-VEC-R
+                          verzweigungInRad
+                          growthRatio
+                          (rest colorList)
+                         )))]))
+
+(tree (make-posn 250 500) (make-vector (/ pi 2) 100) (/ pi 4) 0.66 TEST-COLLIST)
+
+
+(put-blossom (make-posn 43 340) "green"
+ (put-blossom (make-posn 100 439) "green"
+  (put-blossom (make-posn 250 400) "green"
+   (put-branch (make-posn 0 0) (make-vector (/ pi 2) 100) "green"
+    (put-branch (make-posn 250 250) (make-vector (/ pi 4) 150) "green"
+     (put-branch (make-posn 250 250) (make-vector (* pi (/ 3 2)) 200) "green"
+      (put-image (circle BLOSSOM-SIZE BLOSSOM-TYPE "red") 43 340
+       (put-image (circle BLOSSOM-SIZE BLOSSOM-TYPE "red") 100 439
+        (put-image (circle BLOSSOM-SIZE BLOSSOM-TYPE "red") 250 400
+         (add-line (add-line (add-line (empty-scene 500 500)1 1 1 1 "red")250 250 325 325 "red") 250 250 250 50 "red"))))))))))
+
 
 
 ; Helperfunktionen für big-bang-handler
 
 ; Aufruf big-bang-funktion
 
-; weitere Ausdrücke
+; Weitere Ausdrücke
