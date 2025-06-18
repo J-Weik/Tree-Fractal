@@ -8,7 +8,7 @@
 ; Konstantendefinitionen
 
 (define BLOSSOM-SIZE 10)
-(define BLOSSOM-TYPE "filled")
+(define BLOSSOM-TYPE "outline")
 (define TREE-CANVAS-SIZE-X 500)
 (define TREE-CANVAS-SIZE-Y 500)
 (define TEST-COLLIST '("red" "orange" "yellow" "green" "blue" "purple" "black"))
@@ -82,24 +82,26 @@
     [else 
            (put-branch startpos vec (first colorList)
            (local [
-                   (define NEW-START-POS (polar->cartesian (vector-phi vec)(vector-len vec)))
+                   (define NEW-START-POS (make-posn (+ (posn-x startpos) (posn-x (polar->cartesian (vector-phi vec)(vector-len vec))))
+                                                    (+ (posn-y startpos) (posn-y (polar->cartesian (vector-phi vec)(vector-len vec))))))
                    (define NEW-VEC-L (make-vector (+ (vector-phi vec) verzweigungInRad )(* growthRatio (vector-len vec))))
                    (define NEW-VEC-R (make-vector (- (vector-phi vec) verzweigungInRad )(* growthRatio (vector-len vec))))]
-                   (tree
+
+             (place-image (tree
                          NEW-START-POS
                          NEW-VEC-L
                          verzweigungInRad
                          growthRatio
-                         (rest colorList))
+                         (rest colorList)) (/ TREE-CANVAS-SIZE-X 2) (/ TREE-CANVAS-SIZE-Y 2)
                          (tree
                           NEW-START-POS
                           NEW-VEC-R
                           verzweigungInRad
                           growthRatio
                           (rest colorList)
-                         )))]))
+                         ))))]))
 
-(tree (make-posn 250 500) (make-vector (/ pi 2) 100) (/ pi 4) 0.66 TEST-COLLIST)
+(tree (make-posn 250 500) (make-vector (/ pi 2) -100) (/ pi 4) 0.66 TEST-COLLIST)
 
 
 (put-blossom (make-posn 43 340) "green"
