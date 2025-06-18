@@ -7,6 +7,9 @@
 
 ; Konstantendefinitionen
 
+(define BLOSSOM-SIZE 10)
+(define BLOSSOM-TYPE "outline")
+
 ; Helper funktionen Definitionen
 
 ; List-of-X -> X
@@ -47,11 +50,25 @@
 ; at the coordintes of posn into scene and returns scene
 
 (define (put-branch pos vec color scene)
-  (place-image
-   (add-line (posn-x pos)(posn-y pos)
-             (posn-x (polar->cartesian (vec-phi) (vec-len))))
-   (posn-x pos) (posn-y pos)
-   scene)
+   (add-line scene
+    (posn-x pos)(posn-y pos)
+             (+ (posn-x pos) (posn-x (polar->cartesian (vector-phi vec) (vector-len vec))))
+             (+ (posn-y pos) (posn-y (polar->cartesian (vector-phi vec) (vector-len vec))))
+             color))
+
+(put-branch (make-posn 250 250) (make-vector (* pi (/ 3 2)) 200) "red" (empty-scene 500 500))
+ 
+; posn color image -> image
+; draws a circle in the color of color at position posn in the image and returns the image
+
+(define (put-blossom pos color scene)
+  (put-image
+   (circle BLOSSOM-SIZE BLOSSOM-TYPE color)
+   (posn-x pos)
+   (posn-y pos)
+   scene))
+(put-blossom (make-posn 250 400) "green" (empty-scene 500 500))
+   
 
 
 ; Helperfunktionen für big-bang-handler
