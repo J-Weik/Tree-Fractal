@@ -11,7 +11,9 @@
 (define BLOSSOM-TYPE "outline")
 (define TREE-CANVAS-SIZE-X 500)
 (define TREE-CANVAS-SIZE-Y 500)
+(define TRANSPARENT (make-color 0 0 0 0))
 (define TEST-COLLIST '("red" "orange" "yellow" "green" "blue" "purple" "black"))
+(define TEST-LONGLIST '("black" "black" "black" "black" "black" "black" "black" "black" "black" "black" "black" "black" "black" "black"))
 
 ; Helper funktionen Definitionen
 
@@ -78,42 +80,43 @@
 
 (define (tree startpos vec verzweigungInRad growthRatio colorList)
   (cond
-      [(empty? (rest colorList)) (empty-scene TREE-CANVAS-SIZE-X TREE-CANVAS-SIZE-Y)]
+      [(empty? (rest colorList)) (empty-scene TREE-CANVAS-SIZE-X TREE-CANVAS-SIZE-Y TRANSPARENT)]
     [else 
            (put-branch startpos vec (first colorList)
            (local [
-                   (define NEW-START-POS (make-posn (+ (posn-x startpos) (posn-x (polar->cartesian (vector-phi vec)(vector-len vec))))
+                   (define NEW-STARTPOS (make-posn (+ (posn-x startpos) (posn-x (polar->cartesian (vector-phi vec)(vector-len vec))))
                                                     (+ (posn-y startpos) (posn-y (polar->cartesian (vector-phi vec)(vector-len vec))))))
                    (define NEW-VEC-L (make-vector (+ (vector-phi vec) verzweigungInRad )(* growthRatio (vector-len vec))))
                    (define NEW-VEC-R (make-vector (- (vector-phi vec) verzweigungInRad )(* growthRatio (vector-len vec))))]
 
-             (place-image (tree
-                         NEW-START-POS
+                   (put-image (tree
+                         NEW-STARTPOS
                          NEW-VEC-L
                          verzweigungInRad
                          growthRatio
                          (rest colorList)) (/ TREE-CANVAS-SIZE-X 2) (/ TREE-CANVAS-SIZE-Y 2)
-                         (tree
-                          NEW-START-POS
+                   (tree
+                          NEW-STARTPOS
                           NEW-VEC-R
                           verzweigungInRad
                           growthRatio
                           (rest colorList)
                          ))))]))
 
-(tree (make-posn 250 500) (make-vector (/ pi 2) -100) (/ pi 4) 0.66 TEST-COLLIST)
+(tree (make-posn 250 500) (make-vector (/ pi 2) -150) (/ pi 3) 0.66 TEST-COLLIST)
+  (tree (make-posn 250 500) (make-vector (/ pi 2) -130) (/ pi 3) 0.66 TEST-LONGLIST)
 
 
-(put-blossom (make-posn 43 340) "green"
- (put-blossom (make-posn 100 439) "green"
-  (put-blossom (make-posn 250 400) "green"
-   (put-branch (make-posn 0 0) (make-vector (/ pi 2) 100) "green"
-    (put-branch (make-posn 250 250) (make-vector (/ pi 4) 150) "green"
-     (put-branch (make-posn 250 250) (make-vector (* pi (/ 3 2)) 200) "green"
-      (put-image (circle BLOSSOM-SIZE BLOSSOM-TYPE "red") 43 340
-       (put-image (circle BLOSSOM-SIZE BLOSSOM-TYPE "red") 100 439
-        (put-image (circle BLOSSOM-SIZE BLOSSOM-TYPE "red") 250 400
-         (add-line (add-line (add-line (empty-scene 500 500)1 1 1 1 "red")250 250 325 325 "red") 250 250 250 50 "red"))))))))))
+;(put-blossom (make-posn 43 340) "green"
+; (put-blossom (make-posn 100 439) "green"
+;  (put-blossom (make-posn 250 400) "green"
+;   (put-branch (make-posn 0 0) (make-vector (/ pi 2) 100) "green"
+;    (put-branch (make-posn 250 250) (make-vector (/ pi 4) 150) "green"
+;     (put-branch (make-posn 250 250) (make-vector (* pi (/ 3 2)) 200) "green"
+;      (put-image (circle BLOSSOM-SIZE BLOSSOM-TYPE "red") 43 340
+;       (put-image (circle BLOSSOM-SIZE BLOSSOM-TYPE "red") 100 439
+;        (put-image (circle BLOSSOM-SIZE BLOSSOM-TYPE "red") 250 400
+;         (add-line (add-line (add-line (empty-scene 500 500)1 1 1 1 "red")250 250 325 325 "red") 250 250 250 50 "red"))))))))))
 
 
 
