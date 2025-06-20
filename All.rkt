@@ -150,6 +150,38 @@
 ; input -> WorldState
 ; takes input from keyboard and alters the worldState given from the input
 
+(check-expect (change (change (change DEFAULT_WORLD_STATE "up") "left") "+")
+              (make-WorldState
+                             (+ (/ pi 3) 0.1)
+                             0.76
+                             `(
+                               ,(make-color 255 0 255)
+                               ,(make-color 255 0 64)
+                               ,(make-color 255 0 0)
+                               ,(make-color 255 128 0)
+                               ,(make-color 128 255 0)
+                               ,(make-color 0 255 128)
+                               ,(make-color 0 255 255)
+                               ,(make-color 0 128 255)
+                               ,(make-color 64 0 255)
+                               )))
+
+(check-expect (change (change (change DEFAULT_WORLD_STATE "down") "right") "-")
+              (make-WorldState
+                             (- (/ pi 3) 0.1)
+                             0.56
+                             `(
+                               ,(make-color 255 0 255)
+                               ,(make-color 255 0 64)
+                               ,(make-color 255 0 0)
+                               ,(make-color 255 128 0)
+                               ,(make-color 128 255 0)
+                               ,(make-color 0 255 128)
+                               ,(make-color 0 255 255)
+                               ,(make-color 0 128 255)
+                               ,(make-color 64 0 255)
+                               )))
+
 (define (change world key)
   (cond
     [(key=? key "up") (make-WorldState
@@ -176,7 +208,12 @@
                         (WorldState-verzweigung world)
                         (WorldState-growth world)
                         (cons (last (WorldState-colorList world)) (start (WorldState-colorList world))))]
-    [(key=? key " ") ()
+    [(key=? key " ") (make-WorldState
+                      (WorldState-verzweigung world)
+                      (WorldState-growth world)
+                      (map (lambda (c)
+                             (make-color (color-green c) (color-blue c) (color-red c)))
+                           (WorldState-colorList world)))]))
 
   
 
