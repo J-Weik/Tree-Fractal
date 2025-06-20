@@ -4,16 +4,29 @@
 ; Datendefinitionen
 
 (define-struct vector (phi len))
+(define-struct WorldState (verzweigung growth colorList))
 
 ; Konstantendefinitionen
 
-(define BLOSSOM-SIZE 10)
+(define BLOSSOM-SIZE 5)
 (define BLOSSOM-TYPE "outline")
-(define TREE-CANVAS-SIZE-X 500)
-(define TREE-CANVAS-SIZE-Y 500)
+(define TREE-CANVAS-SIZE-X 1000)
+(define TREE-CANVAS-SIZE-Y 1000)
 (define TRANSPARENT (make-color 0 0 0 0))
-(define TEST-COLLIST '("red" "orange" "yellow" "green" "blue" "purple" "black"))
-(define TEST-LONGLIST '("black" "black" "black" "black" "black" "black" "black" "black" "black" "black" "black" "black" "black" "black"))
+(define DEFAULT_WORLD_STATE (make-WorldState
+                             (/ pi 3)
+                             0.66
+                             `(
+                               ,(make-color 255 0 0)
+                               ,(make-color 255 128 0)
+                               ,(make-color 128 255 0)
+                               ,(make-color 0 255 128)
+                               ,(make-color 0 255 255)
+                               ,(make-color 0 128 255)
+                               ,(make-color 64 0 255)
+                               ,(make-color 255 0 255)
+                               ,(make-color 255 0 64)
+                               )))
 
 ; Helper funktionen Definitionen
 
@@ -68,7 +81,7 @@
 ; draws a circle in the color of color at position posn in the image and returns the image
 
 (define (put-blossom pos color scene)
-  (put-image
+  (place-image
    (circle BLOSSOM-SIZE BLOSSOM-TYPE color)
    (posn-x pos)
    (posn-y pos)
@@ -76,11 +89,13 @@
 
 ; posn vector Number Number Number List-of-colors -> image
 ; draws 2 branches from the given start position with lenght and direction given in the vector,
-; 
+; adapts the direction of the next branch depending on verZweigungInRad. Next branch is always
+; growthRatio * length of vector long. does this for as many colors as there are in the given colorList.
+; Returns the drawn Fractal Tree
 
 (define (tree startpos vec verzweigungInRad growthRatio colorList)
   (cond
-      [(empty? (rest colorList)) (empty-scene TREE-CANVAS-SIZE-X TREE-CANVAS-SIZE-Y TRANSPARENT)]
+      [(empty? (rest colorList)) (put-blossom startpos (first colorList) (empty-scene TREE-CANVAS-SIZE-X TREE-CANVAS-SIZE-Y TRANSPARENT))]
     [else 
            (put-branch startpos vec (first colorList)
            (local [
@@ -103,9 +118,6 @@
                           (rest colorList)
                          ))))]))
 
-(tree (make-posn 250 500) (make-vector (/ pi 2) -150) (/ pi 3) 0.66 TEST-COLLIST)
-  (tree (make-posn 250 500) (make-vector (/ pi 2) -130) (/ pi 3) 0.66 TEST-LONGLIST)
-
 
 ;(put-blossom (make-posn 43 340) "green"
 ; (put-blossom (make-posn 100 439) "green"
@@ -122,6 +134,60 @@
 
 ; Helperfunktionen für big-bang-handler
 
+; world-state -> image
+; renders the fractal tree from the current world state
+(define (render world)
+  (tree
+   (make-posn (/ TREE-CANVAS-SIZE-X 2) (/ TREE-CANVAS-SIZE-Y 1.5))
+   (make-vector
+    (/ pi 2)
+    -150)
+   (WorldState-verzweigung world)
+   (WorldState-growth world)
+   (WorldState-colorList world)
+   ))
+
+; input -> WorldState
+; takes input from keyboard and alters the worldState given from the input
+
+(define (change world key)
+  (cond
+    [(key=? key "up") (make-WorldState
+                       (+ (WorldState-verzweigung world) 0.1)
+                       (WorldState-growth world)
+                       (WorldState-colorList world))]
+    [(key=? key "down") (make-WorldState
+                         (- (WorldState-verzweigung world) 0.1)
+                         (WorldState-growth world)
+                         (WorldState-colorList world))]                      
+    [(key=? key "left") (make-WorldState
+                         (WorldState-verzweigung world)
+                         (+ (WorldState-growth world) 0.1)
+                         (WorldState-colorList world))]
+    [(key=? key "right") (make-WorldState
+                         (WorldState-verzweigung world)
+                         (- (WorldState-growth world) 0.1)
+                         (WorldState-colorList world))]
+    [(key=? key "+") (make-WorldState
+                        (WorldState-verzweigung world)
+                        (WorldState-growth world)
+                        (cons (last (WorldState-colorList world)) (start (WorldState-colorList world))))]
+    [(key=? key "-") (make-WorldState
+                        (WorldState-verzweigung world)
+                        (WorldState-growth world)
+                        (cons (last (WorldState-colorList world)) (start (WorldState-colorList world))))]
+    [(key=? key " ") ()
+
+  
+
 ; Aufruf big-bang-funktion
+
+; WorldState input -> image
+; takes a world-state and gives an image of a fractal Tree.
+; worldState gets altered by user input
+(big-bang DEFAULT_WORLD_STATE
+  (on-key change)
+  (to-draw render)
+  )
 
 ; Weitere Ausdrücke
