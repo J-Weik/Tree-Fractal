@@ -4,7 +4,7 @@
 ; Datendefinitionen
 
 (define-struct vector (phi len))
-(define-struct WorldState (verzweigung growth colorList))
+(define-struct WorldState (verzweigung growth colorList branches))
 
 ; Konstantendefinitionen
 
@@ -12,6 +12,8 @@
 (define BLOSSOM-TYPE "outline")
 (define TREE-CANVAS-SIZE-X 1000)
 (define TREE-CANVAS-SIZE-Y 1000)
+(define FIRST-BRANCH-LENGTH -150)
+(define FIRST-BRANCH-RAD (/ pi 2))
 (define TRANSPARENT (make-color 0 0 0 0))
 (define DEFAULT_WORLD_STATE (make-WorldState
                              (/ pi 3)
@@ -26,7 +28,8 @@
                                ,(make-color 64 0 255)
                                ,(make-color 255 0 255)
                                ,(make-color 255 0 64)
-                               )))
+                               )
+                             2))
 
 ; Helper funktionen Definitionen
 
@@ -93,7 +96,7 @@
 ; growthRatio * length of vector long. does this for as many colors as there are in the given colorList.
 ; Returns the drawn Fractal Tree
 
-(define (tree startpos vec verzweigungInRad growthRatio colorList)
+(define (tree startpos vec verzweigungInRad growthRatio colorList amountBranches)
   (cond
       [(empty? (rest colorList)) (put-blossom startpos (first colorList) (empty-scene TREE-CANVAS-SIZE-X TREE-CANVAS-SIZE-Y TRANSPARENT))]
     [else 
@@ -101,23 +104,30 @@
            (local [
                    (define NEW-STARTPOS (make-posn (+ (posn-x startpos) (posn-x (polar->cartesian (vector-phi vec)(vector-len vec))))
                                                     (+ (posn-y startpos) (posn-y (polar->cartesian (vector-phi vec)(vector-len vec))))))
-                   (define NEW-VEC-L (make-vector (+ (vector-phi vec) verzweigungInRad )(* growthRatio (vector-len vec))))
-                   (define NEW-VEC-R (make-vector (- (vector-phi vec) verzweigungInRad )(* growthRatio (vector-len vec))))]
+                   (define (create-angle-list amount verzw it)
+                     (cond
+                       [(= it 0) empty]
+                       [else (cons (
+                                    (create-angle-list amount verzw (- it 1))
+                                    (+ (* it (/ verzw amount)) verzw)))]))
+                   (define ANGLELIST (create-angle-list amountBranches verzweigungInRad amountBranches))
+                   (define (drawTheBranches ListOfAngles startPos size color)
+                     (cond
+                       [(empty? ListOfAngles)(empty-scene TREE-CANVAS-SIZE-X TREE-CANVAS-SIZE-Y TRANSPARENT)]
+                       [else (overlay (put-branch
+                                       startPos
+                                       (make-vector (first ListOfAngles)
+                                                    size)
+                                       color
+                                       (drawTheBranches
+                                        (rest ListOfAngles)
+                                        startPos
+                                        size
+                                        color)))]))]
+             (drawTheBranches ANGLELIST NEW-STARTPOS -150 "red")))]))
+             
 
-                   (put-image (tree
-                         NEW-STARTPOS
-                         NEW-VEC-L
-                         verzweigungInRad
-                         growthRatio
-                         (rest colorList)) (/ TREE-CANVAS-SIZE-X 2) (/ TREE-CANVAS-SIZE-Y 2)
-                   (tree
-                          NEW-STARTPOS
-                          NEW-VEC-R
-                          verzweigungInRad
-                          growthRatio
-                          (rest colorList)
-                         ))))]))
-
+             
 
 ;(put-blossom (make-posn 43 340) "green"
 ; (put-blossom (make-posn 100 439) "green"
@@ -140,11 +150,12 @@
   (tree
    (make-posn (/ TREE-CANVAS-SIZE-X 2) (/ TREE-CANVAS-SIZE-Y 1.5))
    (make-vector
-    (/ pi 2)
-    -150)
+    FIRST-BRANCH-RAD
+    FIRST-BRANCH-LENGTH)
    (WorldState-verzweigung world)
    (WorldState-growth world)
    (WorldState-colorList world)
+   (WorldState-branches world)
    ))
 
 ; input -> WorldState
