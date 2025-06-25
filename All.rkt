@@ -1,6 +1,13 @@
 ;; The first three lines of this file were inserted by DrRacket. They record metadata
 ;; about the language level of this file in a form that our tools can easily process.
 #reader(lib "htdp-intermediate-lambda-reader.ss" "lang")((modname All) (read-case-sensitive #t) (teachpacks ((lib "image.rkt" "teachpack" "2htdp") (lib "universe.rkt" "teachpack" "2htdp"))) (htdp-settings #(#t constructor repeating-decimal #f #t none #f ((lib "image.rkt" "teachpack" "2htdp") (lib "universe.rkt" "teachpack" "2htdp")) #f)))
+;; AUFGABE i) / ERWEITERUNG :
+;; mit w lässt sich die Menge an branches die pro branch gemalt werden +1 setzen
+;; mit s lässt sich die Menge an branches die pro branch gemalt werden -1 setzen
+;; mit q lässt sich die vorderste Farbe der FarbListe entfernen um das rendern zu beschleunigen
+;; TIPP: BLOSSOM-SIZE auf 0 setzen um die Trees besser sehen zu können
+
+
 ; Datendefinitionen
 
 (define-struct vector (phi len))
@@ -8,7 +15,7 @@
 
 ; Konstantendefinitionen
 
-(define BLOSSOM-SIZE 5)
+(define BLOSSOM-SIZE 0)
 (define BLOSSOM-TYPE "outline")
 (define TREE-CANVAS-SIZE-X 1000)
 (define TREE-CANVAS-SIZE-Y 1000)
@@ -84,19 +91,17 @@
 ; draws a circle in the color of color at position posn in the image and returns the image
 
 (define (put-blossom pos color scene)
-  (put-image
+  (place-image
    (circle BLOSSOM-SIZE BLOSSOM-TYPE color)
    (posn-x pos)
    (posn-y pos)
    scene))
 
-
-
 ; posn vector Number Number Number List-of-colors -> image
 ; draws 2 branches from the given start position with lenght and direction given in the vector,
 ; adapts the direction of the next branch depending on verZweigungInRad. Next branch is always
 ; growthRatio * length of vector long. does this for as many colors as there are in the given colorList.
-; Returns the drawn Fractal Tree
+; Returns the drawn Fractal Tree draws given amount of branches per branch
 
 (define (tree startpos vec verzweigungInRad growthRatio colorList amountBranches)
   (cond
@@ -139,13 +144,6 @@
                (draw-branches (rest angles)))]))]
         (draw-branches angle-list)))]))
 
-             
-
-             
-
-
-
-
 
 ; Helperfunktionen für big-bang-handler
 
@@ -165,11 +163,6 @@
 
 ; input -> WorldState
 ; takes input from keyboard and alters the worldState given from the input
-
-
-
-
-
 
 (define (change world key)
   (cond
@@ -214,12 +207,18 @@
                       (WorldState-verzweigung world)
                       (WorldState-growth world)
                       (WorldState-colorList world)
-                      (+ 1 (WorldState-branches world)))]
+                      (+ (WorldState-branches world) 1))]
     [(key=? key "s") (make-WorldState
                       (WorldState-verzweigung world)
                       (WorldState-growth world)
                       (WorldState-colorList world)
-                      (- 1 (WorldState-branches world)))]))
+                      (- (WorldState-branches world) 1))]
+    [(key=? key "q") (make-WorldState
+                      (WorldState-verzweigung world)
+                      (WorldState-growth world)
+                      (rest (WorldState-colorList world))
+                      (WorldState-branches world))]
+    [else world]))
 
   
 
