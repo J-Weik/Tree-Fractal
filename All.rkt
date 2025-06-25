@@ -84,11 +84,13 @@
 ; draws a circle in the color of color at position posn in the image and returns the image
 
 (define (put-blossom pos color scene)
-  (place-image
+  (put-image
    (circle BLOSSOM-SIZE BLOSSOM-TYPE color)
    (posn-x pos)
    (posn-y pos)
    scene))
+
+
 
 ; posn vector Number Number Number List-of-colors -> image
 ; draws 2 branches from the given start position with lenght and direction given in the vector,
@@ -98,47 +100,50 @@
 
 (define (tree startpos vec verzweigungInRad growthRatio colorList amountBranches)
   (cond
-      [(empty? (rest colorList)) (put-blossom startpos (first colorList) (empty-scene TREE-CANVAS-SIZE-X TREE-CANVAS-SIZE-Y TRANSPARENT))]
-    [else 
-           (put-branch startpos vec (first colorList)
+    [(empty? (rest colorList))
+     (put-blossom startpos (first colorList)
+                  (empty-scene TREE-CANVAS-SIZE-X TREE-CANVAS-SIZE-Y TRANSPARENT))]
+    [else
+     (put-branch
+      startpos vec (first colorList)
+      (local
+        [(define new-startpos
+           (make-posn
+            (+ (posn-x startpos) (posn-x (polar->cartesian (vector-phi vec) (vector-len vec))))
+            (+ (posn-y startpos) (posn-y (polar->cartesian (vector-phi vec) (vector-len vec))))))
+         (define (create-angle-list amount verzweigungInRad)
            (local [
-                   (define NEW-STARTPOS (make-posn (+ (posn-x startpos) (posn-x (polar->cartesian (vector-phi vec)(vector-len vec))))
-                                                    (+ (posn-y startpos) (posn-y (polar->cartesian (vector-phi vec)(vector-len vec))))))
-                   (define (create-angle-list amount verzw it)
+                   (define (helper i)
                      (cond
-                       [(= it 0) empty]
-                       [else (cons (
-                                    (create-angle-list amount verzw (- it 1))
-                                    (+ (* it (/ verzw amount)) verzw)))]))
-                   (define ANGLELIST (create-angle-list amountBranches verzweigungInRad amountBranches))
-                   (define (drawTheBranches ListOfAngles startPos size color)
-                     (cond
-                       [(empty? ListOfAngles)(empty-scene TREE-CANVAS-SIZE-X TREE-CANVAS-SIZE-Y TRANSPARENT)]
-                       [else (overlay (put-branch
-                                       startPos
-                                       (make-vector (first ListOfAngles)
-                                                    size)
-                                       color
-                                       (drawTheBranches
-                                        (rest ListOfAngles)
-                                        startPos
-                                        size
-                                        color)))]))]
-             (drawTheBranches ANGLELIST NEW-STARTPOS -150 "red")))]))
-             
+                       [(= i amount) empty]
+                       [else
+                        (cons
+                         (+ (- verzweigungInRad)
+                            (* i (/ (* 2 verzweigungInRad) (max 1 (- amount 1)))))
+                         (helper (+ i 1)))]))]
+             (helper 0)))
+
+         (define angle-list (create-angle-list amountBranches verzweigungInRad))
+         (define (draw-branches angles)
+           (cond
+             [(empty? angles)
+              (empty-scene TREE-CANVAS-SIZE-X TREE-CANVAS-SIZE-Y TRANSPARENT)]
+             [else
+              (overlay
+               (tree new-startpos
+                     (make-vector (+ (vector-phi vec) (first angles)) (* growthRatio (vector-len vec)))
+                     verzweigungInRad
+                     growthRatio
+                     (rest colorList)
+                     amountBranches)
+               (draw-branches (rest angles)))]))]
+        (draw-branches angle-list)))]))
 
              
 
-;(put-blossom (make-posn 43 340) "green"
-; (put-blossom (make-posn 100 439) "green"
-;  (put-blossom (make-posn 250 400) "green"
-;   (put-branch (make-posn 0 0) (make-vector (/ pi 2) 100) "green"
-;    (put-branch (make-posn 250 250) (make-vector (/ pi 4) 150) "green"
-;     (put-branch (make-posn 250 250) (make-vector (* pi (/ 3 2)) 200) "green"
-;      (put-image (circle BLOSSOM-SIZE BLOSSOM-TYPE "red") 43 340
-;       (put-image (circle BLOSSOM-SIZE BLOSSOM-TYPE "red") 100 439
-;        (put-image (circle BLOSSOM-SIZE BLOSSOM-TYPE "red") 250 400
-;         (add-line (add-line (add-line (empty-scene 500 500)1 1 1 1 "red")250 250 325 325 "red") 250 250 250 50 "red"))))))))))
+             
+
+
 
 
 
@@ -161,70 +166,60 @@
 ; input -> WorldState
 ; takes input from keyboard and alters the worldState given from the input
 
-(check-expect (change (change (change DEFAULT_WORLD_STATE "up") "left") "+")
-              (make-WorldState
-                             (+ (/ pi 3) 0.1)
-                             0.76
-                             `(
-                               ,(make-color 255 0 255)
-                               ,(make-color 255 0 64)
-                               ,(make-color 255 0 0)
-                               ,(make-color 255 128 0)
-                               ,(make-color 128 255 0)
-                               ,(make-color 0 255 128)
-                               ,(make-color 0 255 255)
-                               ,(make-color 0 128 255)
-                               ,(make-color 64 0 255)
-                               )))
 
-(check-expect (change (change (change DEFAULT_WORLD_STATE "down") "right") "-")
-              (make-WorldState
-                             (- (/ pi 3) 0.1)
-                             0.56
-                             `(
-                               ,(make-color 255 0 255)
-                               ,(make-color 255 0 64)
-                               ,(make-color 255 0 0)
-                               ,(make-color 255 128 0)
-                               ,(make-color 128 255 0)
-                               ,(make-color 0 255 128)
-                               ,(make-color 0 255 255)
-                               ,(make-color 0 128 255)
-                               ,(make-color 64 0 255)
-                               )))
+
+
+
 
 (define (change world key)
   (cond
     [(key=? key "up") (make-WorldState
                        (+ (WorldState-verzweigung world) 0.1)
                        (WorldState-growth world)
-                       (WorldState-colorList world))]
+                       (WorldState-colorList world)
+                       (WorldState-branches world))]
     [(key=? key "down") (make-WorldState
                          (- (WorldState-verzweigung world) 0.1)
                          (WorldState-growth world)
-                         (WorldState-colorList world))]                      
+                         (WorldState-colorList world)
+                         (WorldState-branches world))]                      
     [(key=? key "left") (make-WorldState
                          (WorldState-verzweigung world)
                          (+ (WorldState-growth world) 0.1)
-                         (WorldState-colorList world))]
+                         (WorldState-colorList world)
+                         (WorldState-branches world))]
     [(key=? key "right") (make-WorldState
                          (WorldState-verzweigung world)
                          (- (WorldState-growth world) 0.1)
-                         (WorldState-colorList world))]
+                         (WorldState-colorList world)
+                         (WorldState-branches world))]
     [(key=? key "+") (make-WorldState
                         (WorldState-verzweigung world)
                         (WorldState-growth world)
-                        (cons (last (WorldState-colorList world)) (start (WorldState-colorList world))))]
+                        (cons (last (WorldState-colorList world)) (start (WorldState-colorList world)))
+                        (WorldState-branches world))]
     [(key=? key "-") (make-WorldState
                         (WorldState-verzweigung world)
                         (WorldState-growth world)
-                        (cons (last (WorldState-colorList world)) (start (WorldState-colorList world))))]
+                        (cons (last (WorldState-colorList world)) (start (WorldState-colorList world)))
+                        (WorldState-branches world))]
     [(key=? key " ") (make-WorldState
                       (WorldState-verzweigung world)
                       (WorldState-growth world)
                       (map (lambda (c)
                              (make-color (color-green c) (color-blue c) (color-red c)))
-                           (WorldState-colorList world)))]))
+                           (WorldState-colorList world))
+                      (WorldState-branches world))]
+    [(key=? key "w") (make-WorldState
+                      (WorldState-verzweigung world)
+                      (WorldState-growth world)
+                      (WorldState-colorList world)
+                      (+ 1 (WorldState-branches world)))]
+    [(key=? key "s") (make-WorldState
+                      (WorldState-verzweigung world)
+                      (WorldState-growth world)
+                      (WorldState-colorList world)
+                      (- 1 (WorldState-branches world)))]))
 
   
 
@@ -233,9 +228,59 @@
 ; WorldState input -> image
 ; takes a world-state and gives an image of a fractal Tree.
 ; worldState gets altered by user input
+
 (big-bang DEFAULT_WORLD_STATE
   (on-key change)
   (to-draw render)
   )
 
 ; Weitere Ausdrücke
+
+; Test für put-blossom und put-branch
+(put-blossom (make-posn 43 340) "green"
+ (put-blossom (make-posn 100 439) "green"
+  (put-blossom (make-posn 250 400) "green"
+   (put-branch (make-posn 0 0) (make-vector (/ pi 2) 100) "green"
+    (put-branch (make-posn 250 250) (make-vector (/ pi 4) 150) "green"
+     (put-branch (make-posn 250 250) (make-vector (* pi (/ 3 2)) 200) "green"
+      (put-image (circle BLOSSOM-SIZE BLOSSOM-TYPE "red") 43 340
+       (put-image (circle BLOSSOM-SIZE BLOSSOM-TYPE "red") 100 439
+        (put-image (circle BLOSSOM-SIZE BLOSSOM-TYPE "red") 250 400
+         (add-line (add-line (add-line (empty-scene 500 500)1 1 1 1 "red")250 250 325 325 "red") 250 250 250 50 "red"))))))))))
+
+; Tests für change
+
+(define CHANGE_TEST1 (change (change (change DEFAULT_WORLD_STATE "up") "left") "+"))
+(define CHANGE_TEST2 (change (change (change DEFAULT_WORLD_STATE "down") "right") "-"))
+
+(check-within (WorldState-verzweigung CHANGE_TEST1) (+ (/ pi 3) 0.1) 1e-6)
+(check-within (WorldState-growth CHANGE_TEST1) 0.76 1e-6)
+(check-expect (WorldState-colorList CHANGE_TEST1)
+              `(
+                ,(make-color 255 0 64)
+                ,(make-color 255 0 0)
+                ,(make-color 255 128 0)
+                ,(make-color 128 255 0)
+                ,(make-color 0 255 128)
+                ,(make-color 0 255 255)
+                ,(make-color 0 128 255)
+                ,(make-color 64 0 255)
+                ,(make-color 255 0 255)
+                ))
+
+(check-expect (WorldState-branches CHANGE_TEST1) 2)
+(check-within (WorldState-verzweigung CHANGE_TEST2) (- (/ pi 3) 0.1) 1e-6)
+(check-within (WorldState-growth CHANGE_TEST2) 0.56 1e-6)
+(check-expect (WorldState-colorList CHANGE_TEST2)
+              `(
+                ,(make-color 255 0 64)
+                ,(make-color 255 0 0)
+                ,(make-color 255 128 0)
+                ,(make-color 128 255 0)
+                ,(make-color 0 255 128)
+                ,(make-color 0 255 255)
+                ,(make-color 0 128 255)
+                ,(make-color 64 0 255)
+                ,(make-color 255 0 255)
+                ))
+(check-expect (WorldState-branches CHANGE_TEST2) 2)
