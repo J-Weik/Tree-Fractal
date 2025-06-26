@@ -78,7 +78,7 @@
 ; Draws a line with length and direction given in vector in the color of color
 ; at the coordintes of posn into scene and returns scene
 
-; Tests sind in Abschnitt "weitere Ausdrücke"
+; Tests sind unter funktion put-blossom da sich racket sonst beschwert
 (define (put-branch pos vec color scene)
    (add-line scene
     (posn-x pos)(posn-y pos)
@@ -86,19 +86,43 @@
              (+ (posn-y pos) (posn-y (polar->cartesian (vector-phi vec) (vector-len vec))))
              color))
 
-
-
- 
 ; posn color image -> image
 ; draws a circle in the color of color at position posn in the image and returns the image
 
-; Tests sind in Abschnitt "weitere Ausdrücke"
+; Tests sind unter funktion da sich racket sonst beschwert
 (define (put-blossom pos color scene)
   (place-image
    (circle BLOSSOM-SIZE BLOSSOM-TYPE color)
    (posn-x pos)
    (posn-y pos)
    scene))
+
+; Test für put-blossom und put-branch
+
+(put-blossom (make-posn 43 340) "green"
+ (put-blossom (make-posn 100 439) "green"
+  (put-blossom (make-posn 250 400) "green"
+   (put-branch (make-posn 0 0) (make-vector (/ pi 3) 100) "green"
+    (put-branch (make-posn 250 250) (make-vector (/ pi 4) 106) "green"
+     (put-branch (make-posn 250 250) (make-vector (* 1.5 pi) 200) "green"
+      (place-image (circle BLOSSOM-SIZE BLOSSOM-TYPE "red") 43 340
+       (place-image (circle BLOSSOM-SIZE BLOSSOM-TYPE "red") 100 439
+        (place-image (circle BLOSSOM-SIZE BLOSSOM-TYPE "red") 250 400
+         (add-line
+          (add-line
+           (add-line (empty-scene 500 500)
+                     0 0
+                     (posn-x (polar->cartesian (/ pi 3) 100))
+                     (posn-y (polar->cartesian (/ pi 3) 100))
+                     "red")
+           250 250
+           (+ 250 (posn-x (polar->cartesian (/ pi 4) 106)))
+           (+ 250 (posn-y (polar->cartesian (/ pi 4) 106)))
+           "red")
+          250 250
+          (+ 250 (posn-x (polar->cartesian (* 1.5 pi) 200)))
+          (+ 250 (posn-y (polar->cartesian (* 1.5 pi) 200)))
+          "red"))))))))))
 
 ; posn vector Number Number Number List-of-colors -> image
 ; draws 2 branches from the given start position with lenght and direction given in the vector,
@@ -155,6 +179,7 @@
 
 ; world-state -> image
 ; renders the fractal tree from the current world state
+
 (define (render world)
   (tree
    (make-posn (/ TREE-CANVAS-SIZE-X 2) (/ TREE-CANVAS-SIZE-Y 1.5))
@@ -171,7 +196,8 @@
 ; input -> WorldState
 ; takes input from keyboard and alters the worldState given from the input
 
-; Tests sind in Abschnitt "weitere Ausdrücke"
+; Tests stehen unter funktion, da sich racket sonst beschwert
+
 (define (change world key)
   (cond
     [(key=? key "up") (make-WorldState
@@ -193,11 +219,11 @@
                          (WorldState-branches world)
                          (WorldState-drawBlossoms world))]
     [(key=? key "right") (make-WorldState
-                         (WorldState-verzweigung world)
-                         (- (WorldState-growth world) 0.1)
-                         (WorldState-colorList world)
-                         (WorldState-branches world)
-                         (WorldState-drawBlossoms world))]
+                          (WorldState-verzweigung world)
+                          (- (WorldState-growth world) 0.1)
+                          (WorldState-colorList world)
+                          (WorldState-branches world)
+                          (WorldState-drawBlossoms world))]
     [(key=? key "+") (make-WorldState
                         (WorldState-verzweigung world)
                         (WorldState-growth world)
@@ -246,65 +272,6 @@
                         [(WorldState-drawBlossoms world) false ]
                         [else true]))]
     [else world]))
-
-  
-
-; Aufruf big-bang-funktion
-
-; WorldState input -> image
-; takes a world-state and gives an image of a fractal Tree.
-; worldState gets altered by user input
-
-(big-bang DEFAULT_WORLD_STATE
-  (on-key change)
-  (to-draw render)
-  )
-
-; Weitere Ausdrücke
-
-; Aufgabe j)
-
-(render (make-WorldState
- 1.0471975511965976
- 0.66
- (list
-  (make-color 0 255 128 255)
-  (make-color 0 255 255 255)
-  (make-color 0 128 255 255)
-  (make-color 64 0 255 255)
-  (make-color 255 0 255 255)
-  (make-color 255 0 64 255)
-  (make-color 255 0 0 255)
-  (make-color 255 128 0 255)
-  (make-color 128 255 0 255))
- 4
- false))
-
-; Test für put-blossom und put-branch
-(put-blossom (make-posn 43 340) "green"
- (put-blossom (make-posn 100 439) "green"
-  (put-blossom (make-posn 250 400) "green"
-   (put-branch (make-posn 0 0) (make-vector (/ pi 3) 100) "green"
-    (put-branch (make-posn 250 250) (make-vector (/ pi 4) 106) "green"
-     (put-branch (make-posn 250 250) (make-vector (* 1.5 pi) 200) "green"
-      (place-image (circle BLOSSOM-SIZE BLOSSOM-TYPE "red") 43 340
-       (place-image (circle BLOSSOM-SIZE BLOSSOM-TYPE "red") 100 439
-        (place-image (circle BLOSSOM-SIZE BLOSSOM-TYPE "red") 250 400
-         (add-line
-          (add-line
-           (add-line (empty-scene 500 500)
-                     0 0
-                     (posn-x (polar->cartesian (/ pi 3) 100))
-                     (posn-y (polar->cartesian (/ pi 3) 100))
-                     "red")
-           250 250
-           (+ 250 (posn-x (polar->cartesian (/ pi 4) 106)))
-           (+ 250 (posn-y (polar->cartesian (/ pi 4) 106)))
-           "red")
-          250 250
-          (+ 250 (posn-x (polar->cartesian (* 1.5 pi) 200)))
-          (+ 250 (posn-y (polar->cartesian (* 1.5 pi) 200)))
-          "red"))))))))))
 
 ; Tests für change
 
@@ -421,3 +388,36 @@
                 ))
 (check-expect (WorldState-branches CHANGE_TEST6) 2)
 (check-expect (WorldState-drawBlossoms CHANGE_TEST6) false)
+
+  
+
+; Aufruf big-bang-funktion
+
+; WorldState input -> image
+; takes a world-state and gives an image of a fractal Tree.
+; worldState gets altered by user input
+
+(big-bang DEFAULT_WORLD_STATE
+  (on-key change)
+  (to-draw render)
+  )
+
+; Weitere Ausdrücke
+
+; Aufgabe j)
+
+(render (make-WorldState
+ 1.0471975511965976
+ 0.66
+ (list
+  (make-color 0 255 128 255)
+  (make-color 0 255 255 255)
+  (make-color 0 128 255 255)
+  (make-color 64 0 255 255)
+  (make-color 255 0 255 255)
+  (make-color 255 0 64 255)
+  (make-color 255 0 0 255)
+  (make-color 255 128 0 255)
+  (make-color 128 255 0 255))
+ 4
+ false))
