@@ -8,6 +8,7 @@
 ;; mit t lässt sich das rendern der Blossoms toggeln (um Bäume mit mehr als 2 branches besser zu sehen)
 ;; HINWEIS: Zugewiesener RAM für DrRacket muss möglicherweise hochgestellt werden
 
+
 ; Datendefinitionen
 
 (define-struct vector (phi len))
@@ -65,7 +66,7 @@
     [else (cons (first lst) (start (rest lst)))]))
 
 ; Number Number -> posn
-; returns the coordinates in cartesian form for a Radiant phi and a length l 
+; returns the coordinates in cartesian form for a Radiant phi and a length l
 (check-within (posn-x (polar->cartesian (/ pi 2) 2)) 0.0 1e-6)
 (check-within (posn-y (polar->cartesian (/ pi 2) 2)) 2.0 1e-6)
 (check-within (posn-x (polar->cartesian 0 0)) 0.0 1e-6)
@@ -124,11 +125,11 @@
           (+ 250 (posn-y (polar->cartesian (* 1.5 pi) 200)))
           "red"))))))))))
 
-; posn vector Number Number Number List-of-colors -> image
+; posn vector Number Number Number List-of-colors Boolean -> image
 ; draws 2 branches from the given start position with lenght and direction given in the vector,
 ; adapts the direction of the next branch depending on verZweigungInRad. Next branch is always
 ; growthRatio * length of vector long. does this for as many colors as there are in the given colorList.
-; Returns the drawn Fractal Tree draws given amount of branches per branch
+; Returns the drawn Fractal Tree draws given amount of branches per branch and if drawBlossoms? is true draw Blossoms at the last branch
 
 (define (tree startpos vec verzweigungInRad growthRatio colorList amountBranches drawBlossoms?)
   (cond
@@ -230,11 +231,10 @@
                         (cons (last (WorldState-colorList world)) (start (WorldState-colorList world)))
                         (WorldState-branches world)
                         (WorldState-drawBlossoms world))]
-    ; Möglicherweise Fehler in der Aufgabenstellung? sowohl + als auch - sollen nach Aufgabenstellung die Liste gleich verändern
     [(key=? key "-") (make-WorldState
                         (WorldState-verzweigung world)
                         (WorldState-growth world)
-                        (cons (last (WorldState-colorList world)) (start (WorldState-colorList world)))
+                        (append (rest (WorldState-colorList world)) (list (first (WorldState-colorList world))))
                         (WorldState-branches world)
                         (WorldState-drawBlossoms world))]
     [(key=? key " ") (make-WorldState
@@ -305,8 +305,6 @@
 (check-within (WorldState-growth CHANGE_TEST2) 0.56 1e-6)
 (check-expect (WorldState-colorList CHANGE_TEST2)
               `(
-                ,(make-color 255 0 64)
-                ,(make-color 255 0 0)
                 ,(make-color 255 128 0)
                 ,(make-color 128 255 0)
                 ,(make-color 0 255 128)
@@ -314,6 +312,8 @@
                 ,(make-color 0 128 255)
                 ,(make-color 64 0 255)
                 ,(make-color 255 0 255)
+                ,(make-color 255 0 64)
+                ,(make-color 255 0 0)
                 ))
 (check-expect (WorldState-branches CHANGE_TEST2) 2)
 (check-expect (WorldState-drawBlossoms CHANGE_TEST2) true)
